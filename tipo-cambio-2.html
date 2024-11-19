@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizaciones</title>
+    <style>
+        .dolar-card {
+            background-color: #004791;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            max-width: 80%;
+            margin: 10px auto;
+            font-family: 'Aptos', sans-serif;
+        }
+        .dolar-info {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(150px, 1fr));
+            gap: 5px;
+            margin: 10px 0;
+            font-size: 1.1em;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .dolar-item {
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            animation: slide 20s linear infinite;
+        }
+        .update-time {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+        }
+        @keyframes slide {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div id="dolar-card" class="dolar-card">
+        <h2 style="color: #ffffff; font-family: 'Aptos', sans-serif;">Cotizaciones:</h2>
+        <div id="dolar-info" class="dolar-info">Cargando datos...</div>
+        <div id="update-time" class="update-time"></div>
+    </div>
+
+    <script>
+        async function fetchDolarValues() {
+            try {
+                const response = await fetch('https://dolarapi.com/v1/dolares');
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta de la API');
+                }
+                const data = await response.json();
+
+                // Imprimir la respuesta para verificar la estructura
+                console.log('Datos de la API:', data);
+
+                const oficial = data.find(item => item.nombre.toLowerCase().includes("oficial"));
+                const blue = data.find(item => item.nombre.toLowerCase().includes("blue"));
+                const tarjeta = data.find(item => item.nombre.toLowerCase().includes("tarjeta"));
+                const bolsa = data.find(item => item.nombre.toLowerCase().includes("bolsa"));
+                const ccl = data.find(item => item.nombre.toLowerCase().includes("contado con liquidaci"));
+                const mayorista = data.find(item => item.nombre.toLowerCase().includes("mayorista"));
+
+                let infoHtml = '';
+                if (oficial) {
+                    infoHtml += `<div class="dolar-item"><strong>Oficial:</strong><br><em>Compra:</em> $${oficial.compra}<br><em>Venta:</em> $${oficial.venta}</div>`;
+                }
+                if (blue) {
+                    infoHtml += `<div class="dolar-item"><strong>Blue:</strong><br><em>Compra:</em> $${blue.compra}<br><em>Venta:</em> $${blue.venta}</div>`;
+                }
+                if (tarjeta) {
+                    infoHtml += `<div class="dolar-item"><strong>Tarjeta:</strong><br><em>Compra:</em> $${tarjeta.compra}<br><em>Venta:</em> $${tarjeta.venta}</div>`;
+                }
+                if (bolsa) {
+                    infoHtml += `<div class="dolar-item"><strong>Bolsa:</strong><br><em>Compra:</em> $${bolsa.compra}<br><em>Venta:</em> $${bolsa.venta}</div>`;
+                }
+                if (ccl) {
+                    infoHtml += `<div class="dolar-item"><strong>CCL:</strong><br><em>Compra:</em> $${ccl.compra}<br><em>Venta:</em> $${ccl.venta}</div>`;
+                }
+                if (mayorista) {
+                    infoHtml += `<div class="dolar-item"><strong>Mayorista:</strong><br><em>Compra:</em> $${mayorista.compra}<br><em>Venta:</em> $${mayorista.venta}</div>`;
+                }
+
+                document.getElementById('dolar-info').innerHTML = infoHtml;
+
+                // Mostrar la hora de actualización
+                const now = new Date();
+                const formattedTime = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('update-time').innerHTML = `Última actualización: ${formattedTime}`;
+            } catch (error) {
+                document.getElementById('dolar-info').innerHTML = 'Error al cargar los datos.';
+                console.error('Hubo un problema al obtener los valores del dólar:', error);
+            }
+        }
+
+        // Cargar valores al inicio y actualizar cada 5 minutos
+        fetchDolarValues();
+        setInterval(fetchDolarValues, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
